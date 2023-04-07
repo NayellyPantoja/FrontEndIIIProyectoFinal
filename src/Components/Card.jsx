@@ -1,20 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import dentistImg from "../assets/images/doctor.jpg";
+import { Link } from "react-router-dom";
 
+const Card = ({ dentistId }) => {
+  const [dentist, setDentist] = useState(null);
 
-const Card = ({ name, username, id }) => {
+  const [isFav, setIsFav] = useState(false);
 
-  const addFav = ()=>{
-    // Aqui iria la logica para agregar la Card en el localStorage
-  }
+  useEffect(() => {
+    fetch(`https://jsonplaceholder.typicode.com/users/${dentistId}`)
+      .then((response) => response.json())
+      .then((data) => setDentist(data));
+  }, [dentistId]);
+
+  useEffect(() => {
+    const favs = JSON.parse(localStorage.getItem("favs")) || [];
+    setIsFav(favs.includes(dentistId));
+  }, [dentistId]);
+
+  const addFav = () => {
+    const favs = JSON.parse(localStorage.getItem("favs")) || [];
+    const favIndex = favs.indexOf(dentistId);
+    if (favIndex !== -1) {
+      const newFavs = [...favs.slice(0, favIndex), ...favs.slice(favIndex + 1)];
+      localStorage.setItem("favs", JSON.stringify(newFavs));
+      setIsFav(false);
+    } else {
+      const newFavs = [...favs, dentistId];
+      localStorage.setItem("favs", JSON.stringify(newFavs));
+      setIsFav(true);
+    }
+  };
+
+  if (!dentist) return null;
+  console.log(dentist);
 
   return (
     <div className="card">
-        {/* En cada card deberan mostrar en name - username y el id */}
+      <img src={dentistImg} alt="dentist img" style={{ maxWidth: "100%" }} />
+      <Link to={`/detalle/${dentistId}`}>
+        <h4>{dentist.name}</h4>
+      </Link>
+      <p>{dentist.username}</p>
 
-        {/* No debes olvidar que la Card a su vez servira como Link hacia la pagina de detalle */}
-
-        {/* Ademas deberan integrar la logica para guardar cada Card en el localStorage */}
-        <button onClick={addFav} className="favButton">Add fav</button>
+      <button onClick={() => addFav(dentist)} className="favButton">
+        {isFav ? "❤️" : "🤍"}
+      </button>
     </div>
   );
 };
